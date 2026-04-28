@@ -45,3 +45,6 @@ Thumbs.db
 
 # Local env (API keys)
 src/environments/environment.local.ts
+
+# API keys
+src/environments/environment.development.ts

@@ -1,6 +1,6 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 import { environment } from '../../../environments/environment.local';
 import { Coordinates } from '../../shared/models/coordinates.model';
@@ -42,30 +42,62 @@ interface ScoredRoute {
 
 @Injectable({ providedIn: 'root' })
 export class RouteService {
+  private readonly openRouteServiceUrl = '/ors/v2/directions/foot-walking/geojson';
+  private readonly openRouteServiceTimeoutMs = 8000;
+  private readonly requestDelayMs = 1000;
   private readonly http = inject(HttpClient);
   private readonly elevationService = inject(ElevationService);
 
   async generateRoutes(request: RouteRequest): Promise<RouteOption[]> {
+    console.log('Route generation started.', {
+      start: request.start,
+      distanceKm: request.distanceKm,
+      preference: request.preference,
+      endpoint: this.openRouteServiceUrl,
+    });
+
     if (!environment.openRouteServiceApiKey) {
+      console.log('OpenRouteService API key missing. Using mock fallback routes.');
       return this.generateMockFallbackRoutes(request);
     }
 
     const candidates = this.generateRouteCandidates(request);
-    const settledRoutes = await Promise.all(
-      candidates.map(async (candidate, index) => {
-        try {
-          const feature = await this.fetchWalkingRoute(candidate.waypoints);
-          return this.createScoredRoute(request, candidate, feature, index);
-        } catch (error) {
-          console.warn(`OpenRouteService candidate ${candidate.id} failed.`, error);
-          return null;
-        }
-      }),
-    );
+    const failedCandidates: string[] = [];
+    const settledRoutes: Array<ScoredRoute | null> = [];
+    let rateLimitReached = false;
+
+    console.log(`Generated ${candidates.length} route candidates.`);
+
+    for (const [index, candidate] of candidates.entries()) {
+      try {
+        const feature = await this.fetchWalkingRoute(candidate.waypoints);
+        settledRoutes.push(this.createScoredRoute(request, candidate, feature, index));
+      } catch (error) {
+        failedCandidates.push(candidate.id);
+        rateLimitReached ||= this.isRateLimitError(error);
+        console.warn(`OpenRouteService candidate ${candidate.id} failed.`, error);
+        settledRoutes.push(null);
+      }
+
+      if (index < candidates.length - 1) {
+        await this.delay(this.requestDelayMs);
+      }
+    }
 
     const scoredRoutes = settledRoutes.filter((route): route is ScoredRoute => route !== null);
 
+    console.log(`OpenRouteService candidates succeeded: ${scoredRoutes.length}/${candidates.length}.`);
+
+    if (failedCandidates.length > 0) {
+      console.log('OpenRouteService failed candidates:', failedCandidates);
+    }
+
     if (scoredRoutes.length === 0) {
+      console.error('All OpenRouteService candidates failed.');
+      if (rateLimitReached) {
+        throw new Error('API-gräns nådd. Vänta en minut och försök igen.');
+      }
+
       throw new Error('Kunde inte hämta några rutter från OpenRouteService. Kontrollera API-nyckeln och försök igen.');
     }
 
@@ -77,19 +109,23 @@ export class RouteService {
   }
 
   private async fetchWalkingRoute(waypoints: Coordinates[]): Promise<OpenRouteServiceFeature> {
+    const headers = this.createOpenRouteServiceHeaders();
+
+    console.log('OpenRouteService API key configured:', {
+      hasKey: Boolean(environment.openRouteServiceApiKey),
+      keyPreview: this.maskApiKey(environment.openRouteServiceApiKey),
+    });
+
     const response = await firstValueFrom(
       this.http.post<OpenRouteServiceFeatureCollection>(
-        'https://api.openrouteservice.org/v2/directions/foot-walking/geojson',
+        this.openRouteServiceUrl,
         {
           coordinates: waypoints.map((point) => this.toOpenRouteServiceCoordinate(point)),
         },
         {
-          headers: {
-            Authorization: environment.openRouteServiceApiKey,
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
-      ),
+      ).pipe(timeout(this.openRouteServiceTimeoutMs)),
     );
 
     const feature = response.features[0];
@@ -101,8 +137,23 @@ export class RouteService {
     return feature;
   }
 
+  private createOpenRouteServiceHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      Authorization: environment.openRouteServiceApiKey,
+      'Content-Type': 'application/json',
+    });
+  }
+
+  private maskApiKey(apiKey: string): string {
+    if (!apiKey) {
+      return 'missing';
+    }
+
+    return `${apiKey.slice(0, 6)}...${apiKey.slice(-4)} (${apiKey.length} chars)`;
+  }
+
   private generateRouteCandidates(request: RouteRequest): RouteCandidate[] {
-    const candidateCount = 10;
+    const candidateCount = 3;
     const baseBearing = this.preferenceBearingOffset(request.preference);
 
     return Array.from({ length: candidateCount }, (_, index) => {
@@ -243,7 +294,7 @@ export class RouteService {
     const selectedRoutes: ScoredRoute[] = [];
 
     for (const route of rankedRoutes) {
-      if (selectedRoutes.length === 0 || this.calculateDiversity(route, selectedRoutes) >= 0.38) {
+      if (selectedRoutes.length === 0 || this.calculateDiversity(route, selectedRoutes) >= 0.28) {
         selectedRoutes.push(route);
       }
 
@@ -479,6 +530,10 @@ export class RouteService {
 
   private getRoutingErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
+      if (error.status === 429) {
+        return 'API-gräns nådd. Vänta en minut och försök igen.';
+      }
+
       return `Kunde inte hämta rutt från OpenRouteService (${error.status}). Kontrollera API-nyckeln och försök igen.`;
     }
 
@@ -487,6 +542,14 @@ export class RouteService {
     }
 
     return 'Kunde inte hämta rutt från OpenRouteService.';
+  }
+
+  private isRateLimitError(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && error.status === 429;
+  }
+
+  private delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
   }
 
   // Mock fallback används bara när OpenRouteService API-nyckel saknas.

@@ -5,7 +5,7 @@
   </div>
 
   @if (routes.length === 0) {
-    <p class="empty-state">Ange distans och preferens för att generera tre förslag.</p>
+    <p class="empty-state">Välj distans och preferens för att se en rekommenderad rutt.</p>
   } @else {
     <div class="route-list">
       @for (route of routes; track route.id) {
@@ -17,7 +17,12 @@
           tabindex="0"
         >
           <div class="route-card-header">
-            <h3>{{ route.name }}</h3>
+            <div>
+              <h3>{{ route.recommended ? 'Rekommenderad rutt' : route.name }}</h3>
+              @if (route.recommended) {
+                <p>{{ route.name }}</p>
+              }
+            </div>
             @if (route.recommended) {
               <span class="recommended">Rekommenderad</span>
             }

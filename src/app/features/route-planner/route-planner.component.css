@@ -1,10 +1,10 @@
 .planner-panel {
   background: #ffffff;
-  border: 1px solid #dfe7df;
-  border-radius: 8px;
+  border: 1px solid rgba(223, 231, 223, 0.9);
+  border-radius: 16px;
   box-shadow: 0 16px 44px rgba(31, 56, 43, 0.08);
   display: grid;
-  gap: 1.35rem;
+  gap: 1rem;
   padding: 1rem;
 }
 
@@ -15,11 +15,12 @@ p {
 
 h2 {
   color: #17221d;
-  font-size: 1.25rem;
+  font-size: 1.05rem;
 }
 
 p {
   color: #607168;
+  font-size: 0.9rem;
   margin-top: 0.35rem;
 }
 
@@ -28,9 +29,49 @@ p {
   gap: 1.2rem;
 }
 
+.start-point {
+  align-items: center;
+  background: #f5f8f2;
+  border: 1px solid #d6dfd0;
+  border-radius: 14px;
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+}
+
+.start-point span {
+  color: #28362f;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.start-point p {
+  color: #607168;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+.position-button {
+  background: #ffffff;
+  border: 1px solid #9db596;
+  border-radius: 999px;
+  color: #183c2f;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 42px;
+  padding: 0.65rem 0.8rem;
+}
+
+.position-button:hover {
+  background: #eaf2e5;
+}
+
 .distance-field {
+  align-items: center;
   display: grid;
   gap: 0.55rem;
+  grid-template-columns: 1fr auto;
 }
 
 .distance-field span {
@@ -39,15 +80,23 @@ p {
   font-weight: 700;
 }
 
+.distance-field strong {
+  color: #183c2f;
+  font-size: 1.2rem;
+}
+
 input {
-  background: #fbfcfa;
-  border: 1px solid #cfd9cf;
-  border-radius: 8px;
+  accent-color: #183c2f;
+  grid-column: 1 / -1;
+}
+
+input[type="range"] {
+  background: transparent;
+  border: 0;
   color: #17221d;
-  font: inherit;
-  font-size: 1.05rem;
-  min-height: 46px;
-  padding: 0.65rem 0.8rem;
+  min-height: 32px;
+  padding: 0;
+  width: 100%;
 }
 
 input:focus {
@@ -59,7 +108,7 @@ input:focus {
 .generate-button {
   background: #183c2f;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   color: #ffffff;
   cursor: pointer;
   font: inherit;
@@ -85,10 +134,16 @@ input:focus {
 .error-message {
   background: #fff2ed;
   border: 1px solid #efb59f;
-  border-radius: 8px;
+  border-radius: 14px;
   color: #8a321a;
   font-size: 0.9rem;
   font-weight: 700;
   margin: 0;
   padding: 0.75rem 0.85rem;
+}
+
+@media (min-width: 520px) {
+  .start-point {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }

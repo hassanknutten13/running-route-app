@@ -22,8 +22,7 @@ export class App implements OnInit {
   private readonly locationService = inject(LocationService);
 
   async ngOnInit(): Promise<void> {
-    this.currentPosition = await this.locationService.getCurrentPosition();
-    this.isLocating = false;
+    await this.useCurrentPosition();
   }
 
   handleRoutesGenerated(routes: RouteOption[]): void {
@@ -33,5 +32,22 @@ export class App implements OnInit {
 
   selectRoute(route: RouteOption): void {
     this.selectedRoute = route;
+  }
+
+  selectStartPoint(coordinates: Coordinates): void {
+    this.currentPosition = coordinates;
+    this.clearRoutes();
+  }
+
+  async useCurrentPosition(): Promise<void> {
+    this.isLocating = true;
+    this.currentPosition = await this.locationService.getCurrentPosition();
+    this.isLocating = false;
+    this.clearRoutes();
+  }
+
+  private clearRoutes(): void {
+    this.routeOptions = [];
+    this.selectedRoute = null;
   }
 }

@@ -1,21 +1,25 @@
 <main class="app-shell">
-  <header class="app-header">
-    <p class="eyebrow">MVP för löpplanering</p>
-    <h1>Running Route App</h1>
-    <p class="intro">
-      Planera en första mockad löprunda utifrån din position, distans och preferens.
-      Kartan använder Leaflet och kan senare kopplas mot en riktig ruttmotor.
-    </p>
-    @if (isLocating) {
-      <p class="location-status">Hämtar din position...</p>
-    }
-  </header>
+  <section class="map-stage" aria-label="Ruttplanerare">
+    <app-map
+      class="map-column"
+      [center]="currentPosition"
+      [route]="selectedRoute"
+      (startSelected)="selectStartPoint($event)"
+    />
 
-  <section class="workspace" aria-label="Ruttplanerare">
-    <div class="planner-column">
+    <div class="control-panel">
+      <header class="app-header">
+        <p class="eyebrow">Löpplanerare</p>
+        <h1>Running Route App</h1>
+        @if (isLocating) {
+          <p class="location-status">Hämtar din position...</p>
+        }
+      </header>
+
       <app-route-planner
         [start]="currentPosition"
         (routesGenerated)="handleRoutesGenerated($event)"
+        (useCurrentPosition)="useCurrentPosition()"
       />
       <app-route-summary
         [routes]="routeOptions"
@@ -23,11 +27,5 @@
         (routeSelected)="selectRoute($event)"
       />
     </div>
-
-    <app-map
-      class="map-column"
-      [center]="currentPosition"
-      [route]="selectedRoute"
-    />
   </section>
 </main>

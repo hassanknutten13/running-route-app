@@ -7,27 +7,27 @@
 legend {
   color: #28362f;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 0.65rem;
 }
 
 .preference-options {
   display: grid;
-  gap: 0.55rem;
-  grid-template-columns: 1fr;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .preference-option {
-  background: #f5f8f2;
+  background: #f6f8f3;
   border: 1px solid #d6dfd0;
-  border-radius: 8px;
+  border-radius: 999px;
   color: #28362f;
   cursor: pointer;
   font: inherit;
   font-weight: 700;
   min-height: 44px;
-  padding: 0.75rem 0.85rem;
-  text-align: left;
+  padding: 0.65rem 0.75rem;
+  text-align: center;
   transition:
     background-color 160ms ease,
     border-color 160ms ease,
@@ -48,6 +48,6 @@ legend {
 
 @media (min-width: 640px) {
   .preference-options {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

@@ -12,14 +12,14 @@ I nuläget genereras tre mockade ruttförslag baserat på distans och preferens:
 - Snabbaste rutt
 - Mest natur
 
-Appen genererar flera waypoint-kandidater runt startpunkten, hämtar gångrutter
-från OpenRouteService och rankar kandidaterna mot vald preferens. De tre bästa
-alternativen visas, med ett diversity-filter som försöker välja tydligt olika
-riktningar i stället för nästan samma sträcka.
+Appen genererar upp till tre waypoint-kandidater runt startpunkten, hämtar
+gångrutter från OpenRouteService och rankar kandidaterna mot vald preferens.
+Den bästa rutten visas tydligt som rekommenderad, medan övriga alternativ visas
+mer diskret.
 
-Varje förslag visar namn, faktisk distans från ruttmotorn, uppskattad tid,
-höjdmeter och preferens. Det rekommenderade förslaget markeras och rutten ritas
-på kartan. Om ingen OpenRouteService API key är konfigurerad används en tydlig
+Kartan är huvudytan i appen. Distans väljs med slider, preferens med segmenterade
+knappar och ruttstatistik visar faktisk distans, uppskattad tid, höjdmeter och
+preferens. Om ingen OpenRouteService API key är konfigurerad används en tydlig
 mock fallback med testlinjer mellan koordinater.
 
 ## Installation
@@ -35,8 +35,8 @@ TypeScript-typer.
 
 ## OpenRouteService API key
 
-Skapa en API-nyckel hos [OpenRouteService](https://openrouteservice.org/).
-Lägg sedan in nyckeln i environment-filen för lokal utveckling:
+Skapa en HeiGIT Basic Key för OpenRouteService och lägg nyckeln i
+environment-filen för lokal utveckling:
 
 ```ts
 // src/environments/environment.development.ts
@@ -62,6 +62,17 @@ innan rutten ritas som polyline.
 
 Appen gör flera Directions API-anrop per generering för att kunna jämföra
 kandidatrutter. Om enskilda kandidater misslyckas används de andra som fungerar.
+
+För lokal utveckling går OpenRouteService-anrop via Angular proxy för att undvika
+CORS-problem i webbläsaren. `ng serve` använder `proxy.conf.json`, och appen
+anropar `/ors/v2/directions/foot-walking/geojson`, som proxas vidare till:
+
+```text
+https://api.heigit.org/v2/directions/foot-walking/geojson
+```
+
+API-nyckeln skickas som `Authorization` header från `environment.openRouteServiceApiKey`,
+inte som `api_key` query parameter.
 
 Obs: environment-värden i en frontend-app byggs in i JavaScript-bundlen. Använd
 restriktioner på API-nyckeln och flytta anrop via backend innan appen går skarpt.

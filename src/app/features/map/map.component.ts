@@ -2,9 +2,11 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
@@ -21,6 +23,7 @@ import { RouteOption } from '../../shared/models/route-option.model';
 export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input({ required: true }) center!: Coordinates;
   @Input() route: RouteOption | null = null;
+  @Output() readonly startSelected = new EventEmitter<Coordinates>();
 
   @ViewChild('mapContainer', { static: true }) private readonly mapContainer!: ElementRef<HTMLDivElement>;
 
@@ -39,6 +42,13 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
     }).addTo(this.map);
+
+    this.map.on('click', (event: L.LeafletMouseEvent) => {
+      this.startSelected.emit({
+        latitude: event.latlng.lat,
+        longitude: event.latlng.lng,
+      });
+    });
 
     this.renderMapState();
   }
