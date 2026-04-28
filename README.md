@@ -1,59 +1,104 @@
 # RunningRouteApp
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.8.
+Running Route App är en första MVP-bas för att planera löprundor i webbläsaren.
+Appen visar en Leaflet-karta, hämtar användarens position via browser geolocation
+och faller tillbaka till Stockholm om positionen nekas eller misslyckas. Rutter kan
+hämtas från OpenRouteService Directions API med profilen `foot-walking`.
 
-## Development server
+I nuläget genereras tre mockade ruttförslag baserat på distans och preferens:
 
-To start a local development server, run:
+- Minst lutning
+- Rundtur
+- Snabbaste rutt
+- Mest natur
+
+Appen genererar flera waypoint-kandidater runt startpunkten, hämtar gångrutter
+från OpenRouteService och rankar kandidaterna mot vald preferens. De tre bästa
+alternativen visas, med ett diversity-filter som försöker välja tydligt olika
+riktningar i stället för nästan samma sträcka.
+
+Varje förslag visar namn, faktisk distans från ruttmotorn, uppskattad tid,
+höjdmeter och preferens. Det rekommenderade förslaget markeras och rutten ritas
+på kartan. Om ingen OpenRouteService API key är konfigurerad används en tydlig
+mock fallback med testlinjer mellan koordinater.
+
+## Installation
+
+Installera dependencies:
+
+```bash
+npm install
+```
+
+Leaflet används för kartan och är installerat som dependency tillsammans med
+TypeScript-typer.
+
+## OpenRouteService API key
+
+Skapa en API-nyckel hos [OpenRouteService](https://openrouteservice.org/).
+Lägg sedan in nyckeln i environment-filen för lokal utveckling:
+
+```ts
+// src/environments/environment.development.ts
+export const environment = {
+  production: false,
+  openRouteServiceApiKey: 'DIN_OPENROUTESERVICE_API_KEY',
+};
+```
+
+För produktionsbyggen används:
+
+```ts
+// src/environments/environment.ts
+export const environment = {
+  production: true,
+  openRouteServiceApiKey: 'DIN_OPENROUTESERVICE_API_KEY',
+};
+```
+
+OpenRouteService-koordinater skickas som `[longitude, latitude]`. När geometry
+läses tillbaka konverterar appen koordinaterna till Leaflets `[latitude, longitude]`
+innan rutten ritas som polyline.
+
+Appen gör flera Directions API-anrop per generering för att kunna jämföra
+kandidatrutter. Om enskilda kandidater misslyckas används de andra som fungerar.
+
+Obs: environment-värden i en frontend-app byggs in i JavaScript-bundlen. Använd
+restriktioner på API-nyckeln och flytta anrop via backend innan appen går skarpt.
+
+## Kör lokalt
+
+Starta utvecklingsservern:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Öppna sedan:
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```text
+http://localhost:4200/
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Du kan även använda npm-scriptet:
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+## Bygg
 
-To build the project run:
+Kontrollera att TypeScript och Angular bygger:
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Roadmap
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Firebase Auth
+- Firestore
+- GraphHopper som alternativ ruttmotor
+- Elevation API eller annan gratis höjddata-källa för riktig lutningsranking
+- Overpass API / OSM POI-data för riktig natur- och parkheuristik
+- Ionic/Capacitor för iOS/Android
