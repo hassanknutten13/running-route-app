@@ -1,0 +1,48 @@
+<section class="route-summary" aria-labelledby="route-summary-title">
+  <div class="summary-heading">
+    <h2 id="route-summary-title">Ruttförslag</h2>
+    <span>{{ routes.length }} alternativ</span>
+  </div>
+
+  @if (routes.length === 0) {
+    <p class="empty-state">Ange distans och preferens för att generera tre förslag.</p>
+  } @else {
+    <div class="route-list">
+      @for (route of routes; track route.id) {
+        <article
+          class="route-card"
+          [class.selected]="selectedRouteId === route.id"
+          (click)="selectRoute(route)"
+          (keydown.enter)="selectRoute(route)"
+          tabindex="0"
+        >
+          <div class="route-card-header">
+            <h3>{{ route.name }}</h3>
+            @if (route.recommended) {
+              <span class="recommended">Rekommenderad</span>
+            }
+          </div>
+
+          <dl class="route-details">
+            <div>
+              <dt>Distans</dt>
+              <dd>{{ route.distanceKm }} km</dd>
+            </div>
+            <div>
+              <dt>Tid</dt>
+              <dd>{{ formatTime(route.estimatedTimeMinutes) }}</dd>
+            </div>
+            <div>
+              <dt>Höjdmeter</dt>
+              <dd>{{ route.elevationMeters }} m</dd>
+            </div>
+            <div>
+              <dt>Preferens</dt>
+              <dd>{{ preferenceLabels[route.preference] }}</dd>
+            </div>
+          </dl>
+        </article>
+      }
+    </div>
+  }
+</section>

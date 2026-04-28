@@ -1,0 +1,111 @@
+.route-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.summary-heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+h2,
+h3,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+h2 {
+  color: #17221d;
+  font-size: 1.25rem;
+}
+
+.summary-heading span {
+  color: #607168;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.empty-state {
+  background: #ffffff;
+  border: 1px dashed #cad6cb;
+  border-radius: 8px;
+  color: #607168;
+  padding: 1rem;
+}
+
+.route-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.route-card {
+  background: #ffffff;
+  border: 1px solid #dfe7df;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.route-card:hover,
+.route-card:focus-visible {
+  border-color: #87ad77;
+  box-shadow: 0 12px 28px rgba(31, 56, 43, 0.1);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.route-card.selected {
+  border-color: #183c2f;
+  box-shadow: 0 0 0 2px rgba(24, 60, 47, 0.14);
+}
+
+.route-card-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+h3 {
+  color: #17221d;
+  font-size: 1rem;
+}
+
+.recommended {
+  background: #dff0d5;
+  border-radius: 999px;
+  color: #183c2f;
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.55rem;
+}
+
+.route-details {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+dt {
+  color: #728077;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+dd {
+  color: #28362f;
+  font-weight: 800;
+  margin-top: 0.15rem;
+}

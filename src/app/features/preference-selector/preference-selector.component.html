@@ -1,0 +1,17 @@
+<fieldset class="preference-selector">
+  <legend>Preferens</legend>
+
+  <div class="preference-options" role="radiogroup" aria-label="Välj ruttpreferens">
+    @for (preference of preferences; track preference) {
+      <button
+        type="button"
+        class="preference-option"
+        [class.selected]="selected === preference"
+        [attr.aria-pressed]="selected === preference"
+        (click)="selectPreference(preference)"
+      >
+        {{ labels[preference] }}
+      </button>
+    }
+  </div>
+</fieldset>
