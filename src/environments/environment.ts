@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  openRouteServiceApiKey: '',
+  routeWorkerUrl: 'https://worker.hassanknutten.workers.dev',
 };

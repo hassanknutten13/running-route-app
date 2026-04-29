@@ -33,49 +33,42 @@ npm install
 Leaflet används för kartan och är installerat som dependency tillsammans med
 TypeScript-typer.
 
-## OpenRouteService API key
+## Cloudflare Worker
 
-Skapa en HeiGIT Basic Key för OpenRouteService och lägg nyckeln i
-environment-filen för lokal utveckling:
-
-```ts
-// src/environments/environment.development.ts
-export const environment = {
-  production: false,
-  openRouteServiceApiKey: 'DIN_OPENROUTESERVICE_API_KEY',
-};
-```
-
-För produktionsbyggen används:
-
-```ts
-// src/environments/environment.ts
-export const environment = {
-  production: true,
-  openRouteServiceApiKey: 'DIN_OPENROUTESERVICE_API_KEY',
-};
-```
-
-OpenRouteService-koordinater skickas som `[longitude, latitude]`. När geometry
-läses tillbaka konverterar appen koordinaterna till Leaflets `[latitude, longitude]`
-innan rutten ritas som polyline.
-
-Appen gör flera Directions API-anrop per generering för att kunna jämföra
-kandidatrutter. Om enskilda kandidater misslyckas används de andra som fungerar.
-
-För lokal utveckling går OpenRouteService-anrop via Angular proxy för att undvika
-CORS-problem i webbläsaren. `ng serve` använder `proxy.conf.json`, och appen
-anropar `/ors/v2/directions/foot-walking/geojson`, som proxas vidare till:
+Appen skyddar OpenRouteService-nyckeln via en Cloudflare Worker:
 
 ```text
-https://api.heigit.org/v2/directions/foot-walking/geojson
+Angular frontend -> Cloudflare Worker -> OpenRouteService
 ```
 
-API-nyckeln skickas som `Authorization` header från `environment.openRouteServiceApiKey`,
-inte som `api_key` query parameter.
+ORS API-nyckeln ska aldrig ligga i Angular environment. Lägg den som Worker-secret:
 
-Obs: environment-värden i en frontend-app byggs in i JavaScript-bundlen. Använd
-restriktioner på API-nyckeln och flytta anrop via backend innan appen går skarpt.
+```bash
+npm install -g wrangler
+wrangler login
+cd worker
+wrangler secret put ORS_API_KEY
+wrangler deploy
+```
+
+Worker-endpointen är `POST /generate-routes`. Den gör max tre OpenRouteService-
+anrop per generering och skickar nyckeln som `Authorization` header från
+`ORS_API_KEY`.
+
+För lokal utveckling pekar Angular på `http://localhost:8787`. Starta Worker lokalt:
+
+```bash
+cd worker
+wrangler dev
+```
+
+För Firebase Hosting/produktion, uppdatera `routeWorkerUrl` i Angular environment
+till din deployade Worker-url. Firebase Hosting används fortsatt bara för Angular-
+appen; inga Firebase Functions behövs.
+
+OpenRouteService-koordinater skickas från Worker som `[longitude, latitude]`. När
+geometry läses tillbaka konverteras den till Leaflets `[latitude, longitude]`
+innan rutten ritas som polyline.
 
 ## Kör lokalt
 
